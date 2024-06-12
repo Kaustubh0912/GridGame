@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let numbers = Array.from({ length: gridSize }, (_, i) => i + 1);
     let currentNumber = 1;
     let timeleft = 60;
+    let shuffleFactor =10; // Define the time factor here (default is 1)
     let timer;
     let frozenNumbers = new Map(); // Use a Map to keep track of frozen numbers and their positions
 
@@ -64,14 +65,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateProgressBar() {
-        const progressPercentage = (timeleft / 60) * 100;
+        const progressPercentage = (timeleft / (60 * shuffleFactor)) * 100;
         progressBar.style.width = `${progressPercentage}%`;
-        
     }
 
     function startGame() {
         currentNumber = 1;
-        timeleft = 60;
+        timeleft = 60 * shuffleFactor; // Adjust initial timeleft based on time factor
         frozenNumbers.clear();
         createGrid();
         updateProgressBar();
@@ -84,10 +84,11 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 createGrid();
             }
-        }, 1000);
+        }, 1000 / shuffleFactor); // Adjust interval based on time factor
     }
 
     startBtn.addEventListener('click', () => {
+        timeleft = 60;
         startGame();
     });
 });
