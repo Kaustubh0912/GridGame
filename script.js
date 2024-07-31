@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let numbers = Array.from({ length: gridSize }, (_, i) => i + 1);
     let currentNumber = 1;
     let timeleft = 60;
-    let shuffleFactor =10; // Define the time factor here (default is 1)
+    let shuffleFactor = 2; // Define the time factor here (default is 2)
     let timer;
     let frozenNumbers = new Map(); // Use a Map to keep track of frozen numbers and their positions
 
@@ -21,12 +21,12 @@ document.addEventListener("DOMContentLoaded", () => {
         grid.innerHTML = '';
         const numbersToShuffle = numbers.filter(number => !frozenNumbers.has(number));
         shuffle(numbersToShuffle);
-        
+
         let allNumbers = new Array(gridSize);
         frozenNumbers.forEach((value, key) => {
             allNumbers[value] = key; // Place frozen numbers at their positions
         });
-        
+
         numbersToShuffle.forEach(number => {
             for (let i = 0; i < gridSize; i++) {
                 if (allNumbers[i] === undefined) {
@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
             updateProgressBar();
             if (timeleft <= 0) {
                 clearInterval(timer);
-                alert("TIME's UP! YOU LOSE");
+                alert("TIME'S UP! YOU LOSE");
             } else {
                 createGrid();
             }
@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     startBtn.addEventListener('click', () => {
-        timeleft = 60;
+        clearInterval(timer); // Clear any existing timer
         startGame();
     });
 });
