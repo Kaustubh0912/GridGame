@@ -8,7 +8,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let timeleft = 60;
     let shuffleFactor = 2; // Define the time factor here (default is 2)
     let timer;
-    let frozenNumbers = new Map(); // Use a Map to keep track of frozen numbers and their positions
+    let correctlyClickedNumbers = new Set(); // Keep track of correctly clicked numbers
+    let lastWrongClick = null; // Keep track of the last wrong click
+    const penaltyPercentage = 5; // Penalty percentage for wrong clicks
 
     function shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -19,48 +21,62 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function createGrid() {
         grid.innerHTML = '';
-        const numbersToShuffle = numbers.filter(number => !frozenNumbers.has(number));
-        shuffle(numbersToShuffle);
+        shuffle(numbers);
 
-        let allNumbers = new Array(gridSize);
-        frozenNumbers.forEach((value, key) => {
-            allNumbers[value] = key; // Place frozen numbers at their positions
-        });
-
-        numbersToShuffle.forEach(number => {
-            for (let i = 0; i < gridSize; i++) {
-                if (allNumbers[i] === undefined) {
-                    allNumbers[i] = number;
-                    break;
-                }
-            }
-        });
-
-        allNumbers.forEach((number, index) => {
+        numbers.forEach(number => {
             const cell = document.createElement('div');
             cell.classList.add('cell');
             cell.textContent = number;
-            if (frozenNumbers.has(number)) {
+            if (correctlyClickedNumbers.has(number)) {
                 cell.style.backgroundColor = 'rgba(15,15,15,0.35)';
-            } else {
-                cell.addEventListener('click', handleCellClick);
+                cell.style.color = 'green';
+            } else if (number === lastWrongClick) {
+                cell.style.color = 'red';
             }
+            cell.addEventListener('click', handleCellClick);
             grid.appendChild(cell);
         });
     }
 
     function handleCellClick(event) {
         const clickedNumber = parseInt(event.target.textContent);
+        
+        // Reset the color of the last wrong click
+        if (lastWrongClick !== null) {
+            const lastWrongCell = Array.from(grid.children).find(cell => parseInt(cell.textContent) === lastWrongClick);
+            if (lastWrongCell) {
+                lastWrongCell.style.color = '';
+            }
+            lastWrongClick = null;
+        }
+
         if (clickedNumber === currentNumber) {
             event.target.style.backgroundColor = 'rgba(15,15,15,0.35)';
-            const cells = Array.from(grid.children);
-            const index = cells.indexOf(event.target);
-            frozenNumbers.set(clickedNumber, index); // Freeze the number at the clicked position
+            event.target.style.color = 'green';
+            correctlyClickedNumbers.add(clickedNumber);
             currentNumber++;
-            if (currentNumber > gridSize) {
-                clearInterval(timer);
-                alert("YOU WIN!");
-            }
+            checkWinCondition();
+        } else {
+            event.target.style.color = 'red';
+            lastWrongClick = clickedNumber;
+            applyTimePenalty();
+        }
+    }
+
+    function applyTimePenalty() {
+        const penaltyTime = Math.floor((timeleft * penaltyPercentage) / 100);
+        timeleft = Math.max(0, timeleft - penaltyTime); // Ensure timeleft doesn't go below 0
+        updateProgressBar();
+        if (timeleft <= 0) {
+            clearInterval(timer);
+            alert("TIME'S UP! YOU LOSE");
+        }
+    }
+
+    function checkWinCondition() {
+        if (currentNumber > gridSize) {
+            clearInterval(timer);
+            alert("YOU WIN!");
         }
     }
 
@@ -72,7 +88,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function startGame() {
         currentNumber = 1;
         timeleft = 60 * shuffleFactor; // Adjust initial timeleft based on time factor
-        frozenNumbers.clear();
+        correctlyClickedNumbers.clear();
+        lastWrongClick = null;
         createGrid();
         updateProgressBar();
         timer = setInterval(() => {
